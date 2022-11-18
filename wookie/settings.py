@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'wookie.apps.renderer',
+    'wookie.apps.author'
 ]
 
 MIDDLEWARE = [
@@ -130,3 +132,5 @@ REST_FRAMEWORK = {
         'rest_framework_xml.renderers.XMLRenderer',
     ],
 }
+
+AUTH_USER_MODEL = 'author.Author'
