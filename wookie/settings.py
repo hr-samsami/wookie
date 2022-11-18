@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'wookie.apps.renderer',
-    'wookie.apps.author'
+    'wookie.apps.author',
+    'wookie.apps.book'
 ]
 
 MIDDLEWARE = [
