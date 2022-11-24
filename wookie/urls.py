@@ -18,5 +18,5 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('renderer/', include('wookie.apps.renderer.url'))
+    path('renderer/', include('wookie.apps.renderer.urls')),
 ]
