@@ -11,7 +11,10 @@ defusedxml==0.7.1
 django==4.1.3
     # via
     #   -r requirements.in
+    #   django-filter
     #   djangorestframework
+django-filter==22.1
+    # via -r requirements.in
 djangorestframework==3.14.0
     # via -r requirements.in
 djangorestframework-xml==2.0.0

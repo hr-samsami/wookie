@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'django_filters',
     'wookie.apps.renderer',
     'wookie.apps.author',
     'wookie.apps.book'
@@ -132,6 +133,9 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
     ],
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    )
 }
 
 AUTH_USER_MODEL = 'author.Author'
