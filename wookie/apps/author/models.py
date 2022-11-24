@@ -4,3 +4,7 @@ from django.db import models
 
 class Author(AbstractUser):
     pseudonym = models.CharField(max_length=255, blank=True, null=True, default=None)
+
+    @property
+    def name(self):
+        return f"{self.first_name} {self.last_name}"
