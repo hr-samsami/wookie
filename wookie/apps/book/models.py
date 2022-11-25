@@ -17,8 +17,8 @@ class Book(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     @property
-    def author_name(self):
-        return self.author.name
+    def author_pseudonym(self):
+        return self.author.pseudonym
 
     def __str__(self):
         return self.title
