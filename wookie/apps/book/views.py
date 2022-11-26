@@ -10,17 +10,8 @@ from wookie.apps.book.models import Book
 from wookie.apps.book.serialisers import BookSerializer
 
 
-class BookAddView(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-
 class BookListView(generics.ListAPIView):
-    queryset = Book.objects.prefetch_related('author').all()
+    queryset = Book.objects.prefetch_related('author').filter(published=True).all()
     serializer_class = BookSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = BookFilter
@@ -63,6 +54,20 @@ def book_update(request, pk):
     serializer.is_valid(raise_exception=True)
     serializer.save(author=request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['PATCH'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+def book_unpublish(request, pk):
+    updated = Book.objects.prefetch_related('author')\
+        .filter(author=request.user)\
+        .filter(id=pk)\
+        .update(published=False)
+    if updated:
+        return Response('Unpublished', status=status.HTTP_200_OK)
+    else:
+        return Response('No Result', status=status.HTTP_200_OK)
 
 
 @api_view(['DELETE'])
