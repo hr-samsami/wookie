@@ -13,8 +13,12 @@ class Book(models.Model):
                                     validators=[validate_image_file_extension],
                                     error_messages={'invalid_extension': '%(value)s'}, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
+    published = models.BooleanField(blank=False, null=True, default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-published']
 
     @property
     def author_pseudonym(self):
