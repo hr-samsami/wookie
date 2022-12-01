@@ -77,7 +77,10 @@ def book_unpublish(request, pk):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def book_delete(request, pk):
-    book = Book.objects.prefetch_related('author').filter(author=request.user).filter(id=pk).get()
+    try:
+        book = Book.objects.prefetch_related('author').filter(author=request.user).filter(id=pk).get()
+    except Book.DoesNotExist:
+        return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
     book.delete()
     return Response('Deleted', status=status.HTTP_200_OK)
 

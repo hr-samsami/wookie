@@ -125,3 +125,55 @@ class CreateBookViewTests(BookViewTests):
         self.assertEqual(resp.data, serializer.data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertTrue('application/json' in resp['Content-Type'])
+
+
+# Test for path('update/<int:pk>/', views.book_update, name='book-update')
+class UpdateBookViewTests(BookViewTests):
+    def setUp(self):
+        self.create_author()
+        self.get_token()
+        self.params = {
+            'title': 'Python Distilled',
+            'description': 'This is a book based on my 25 years of coding',
+            'price': 123354.21,
+            'published': True,
+            'cover_image': SimpleUploadedFile(self.file_name, self.small_gif, content_type='image/gif')
+        }
+        self.book = Book.objects.create(author=self.author, **self.params)
+        self.url = reverse('book-update', kwargs={'pk': self.book.id})
+
+    def test_response_401_if_user_not_login(self):
+        resp = self.client.post(self.url, data=self.params)
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Authentication credentials were not provided.', resp.json()['detail'])
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_update_book(self):
+        self.params = {
+            'title': 'Python-2022',
+            'description': 'This is a book based on my 30 years of coding',
+            'price': 1200,
+            'published': False,
+            'cover_image': SimpleUploadedFile(self.file_name, self.small_gif, content_type='image/gif')
+        }
+        resp = self.client.put(self.url, HTTP_AUTHORIZATION=self.token, data=self.params)
+        book = Book.objects.get(id=resp.json()['id'])
+        serializer = BookSerializer(book)
+
+        self.assertIsNone(remove(book.cover_image.path))
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_raise_when_author_is_not_owner(self):
+        USER_MODEL.objects.create_user(username='reza',
+                                       pseudonym='f.reza',
+                                       email='reza@gmail.com',
+                                       password=self.password)
+
+        resp = self.client.post(reverse('token_obtain_pair'), data={'username': 'reza', 'password': self.password})
+        self.token = f'Bearer {resp.data["access"]}'
+        resp = self.client.put(self.url, HTTP_AUTHORIZATION=self.token, data=self.params)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
