@@ -38,7 +38,7 @@ class BookModelTests(APITestCase):
         book = Book.objects.create(**self.params)
         self.assertIsInstance(book, Book)
         self.assertTrue(book.published)
-        self.assertIs(remove(book.cover_image.path), None)
+        self.assertIsNone(remove(book.cover_image.path))
 
     def test_raises_error_when_no_author_is_supplied(self):
         self.params.pop('author')
