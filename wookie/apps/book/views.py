@@ -30,9 +30,12 @@ def my_books(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def book_detail(request, pk):
-    book = Book.objects.prefetch_related('author').filter(author=request.user).filter(id=pk).first()
-    serializer = BookSerializer(book, many=False)
-    return Response(serializer.data)
+    try:
+        book = Book.objects.prefetch_related('author').filter(author=request.user).get(id=pk)
+    except Book.DoesNotExist:
+        return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
+    serializer = BookSerializer(book)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
