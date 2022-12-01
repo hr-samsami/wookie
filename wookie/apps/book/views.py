@@ -70,7 +70,7 @@ def book_unpublish(request, pk):
     if updated:
         return Response('Unpublished', status=status.HTTP_200_OK)
     else:
-        return Response('No Result', status=status.HTTP_200_OK)
+        return Response('No Result', status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['DELETE'])
