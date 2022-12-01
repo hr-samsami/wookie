@@ -49,7 +49,10 @@ def book_create(request):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def book_update(request, pk):
-    book = Book.objects.prefetch_related('author').filter(author=request.user).filter(id=pk).first()
+    try:
+        book = Book.objects.prefetch_related('author').filter(author=request.user).get(id=pk)
+    except Book.DoesNotExist:
+        return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
     serializer = BookSerializer(instance=book, data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save(author=request.user)
