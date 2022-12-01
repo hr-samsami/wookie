@@ -140,6 +140,7 @@ class UpdateBookViewTests(BookViewTests):
             'cover_image': SimpleUploadedFile(self.file_name, self.small_gif, content_type='image/gif')
         }
         self.book = Book.objects.create(author=self.author, **self.params)
+        remove(self.book.cover_image.path)
         self.url = reverse('book-update', kwargs={'pk': self.book.id})
 
     def test_response_401_if_user_not_login(self):
@@ -174,6 +175,53 @@ class UpdateBookViewTests(BookViewTests):
         resp = self.client.post(reverse('token_obtain_pair'), data={'username': 'reza', 'password': self.password})
         self.token = f'Bearer {resp.data["access"]}'
         resp = self.client.put(self.url, HTTP_AUTHORIZATION=self.token, data=self.params)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+
+# Test for path('delete/<int:pk>/', views.book_delete, name='book-delete')
+class DeleteBookViewTests(BookViewTests):
+    def setUp(self):
+        self.create_author()
+        self.get_token()
+        self.params = {
+            'title': 'Python Distilled 2022',
+            'description': 'This is a book based on my 25 years of coding',
+            'price': 123354.21,
+            'published': True,
+            'cover_image': SimpleUploadedFile(self.file_name, self.small_gif, content_type='image/gif')
+        }
+        self.book = Book.objects.create(author=self.author, **self.params)
+        remove(self.book.cover_image.path)
+        self.url = reverse('book-delete', kwargs={'pk': self.book.id})
+
+    def test_response_401_if_user_not_login(self):
+        resp = self.client.delete(self.url, data=self.params)
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Authentication credentials were not provided.', resp.json()['detail'])
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_delete_book(self):
+        resp = self.client.delete(self.url, HTTP_AUTHORIZATION=self.token)
+        book = Book.objects.filter(id=self.book.id).first()
+
+        self.assertIsNone(book)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+        resp = self.client.delete(self.url, HTTP_AUTHORIZATION=self.token)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_raise_when_author_is_not_owner(self):
+        USER_MODEL.objects.create_user(username='reza',
+                                       pseudonym='f.reza',
+                                       email='reza@gmail.com',
+                                       password=self.password)
+
+        resp = self.client.post(reverse('token_obtain_pair'), data={'username': 'reza', 'password': self.password})
+        self.token = f'Bearer {resp.data["access"]}'
+        resp = self.client.delete(self.url, HTTP_AUTHORIZATION=self.token, data=self.params)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue('application/json' in resp['Content-Type'])
 
