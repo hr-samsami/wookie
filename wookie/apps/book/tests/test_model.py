@@ -45,12 +45,12 @@ class BookModelTests(APITestCase):
         self.assertRaises(IntegrityError, Book.objects.create, **self.params)
         remove(self.file_path)
 
-    def test_default_published_value_is_empty(self):
+    def test_default_published_value_is_False(self):
         self.params.pop('published')
         book = Book.objects.create(**self.params)
 
         self.assertIsInstance(book, Book)
-        self.assertTrue(book.published)
+        self.assertFalse(book.published)
         self.assertIs(remove(book.cover_image.path), None)
 
     def test_default_cover_image_value_is_empty(self):

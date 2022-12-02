@@ -34,7 +34,7 @@ class BookViewTests(APITestCase):
         self.token = f'Bearer {resp.data["access"]}'
 
 
-# Test for path('create/', views.book_create, name='book-create')
+# Tests for path('create/', views.book_create, name='book-create')
 class CreateBookViewTests(BookViewTests):
     def setUp(self):
         self.create_author()
@@ -128,7 +128,7 @@ class CreateBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
 
-# Test for path('update/<int:pk>/', views.book_update, name='book-update')
+# Tests for path('update/<int:pk>/', views.book_update, name='book-update')
 class UpdateBookViewTests(BookViewTests):
     def setUp(self):
         self.create_author()
@@ -180,7 +180,7 @@ class UpdateBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
 
-# Test for path('delete/<int:pk>/', views.book_delete, name='book-delete')
+# Tests for path('delete/<int:pk>/', views.book_delete, name='book-delete')
 class DeleteBookViewTests(BookViewTests):
     def setUp(self):
         self.create_author()
@@ -227,7 +227,7 @@ class DeleteBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
 
-# Test for path('unpublish/<int:pk>/', views.book_unpublish, name='book-unpublish')
+# Tests for path('unpublish/<int:pk>/', views.book_unpublish, name='book-unpublish')
 class UnpublishBookViewTests(BookViewTests):
     def setUp(self):
         self.create_author()
@@ -271,7 +271,7 @@ class UnpublishBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
 
-# Test for path('detail/<int:pk>/', views.book_detail, name='book-detail'),
+# Tests for path('detail/<int:pk>/', views.book_detail, name='book-detail'),
 class DetailBookViewTests(BookViewTests):
     def setUp(self):
         self.create_author()
@@ -315,7 +315,7 @@ class DetailBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
 
-# Test for path('mylist/', views.my_books, name='book-mylist'),
+# Tests for path('mylist/', views.my_books, name='book-mylist')
 class MylistBookViewTests(BookViewTests):
     def setUp(self):
         self.create_author()
@@ -350,4 +350,136 @@ class MylistBookViewTests(BookViewTests):
         self.token = f'Bearer {resp.data["access"]}'
         resp = self.client.get(reverse('book-mylist'), HTTP_AUTHORIZATION=self.token)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue('application/json' in resp['Content-Type'])
+        
+
+# Tests for path('mylist/', views.my_books, name='book-mylist')
+class ListBookViewTests(BookViewTests):
+    def setUp(self):
+        self.create_author()
+        self.get_token()
+        # Create random Books with a fixed Author
+        for _ in range(10):
+            self.book = baker.make('book')
+            self.book.author = self.author
+            self.book.published = True
+            self.book = self.book.save()
+        # Create random Books with random Authors
+        for _ in range(10):
+            self.book = baker.make('book')
+            self.book.published = True
+            self.book = self.book.save()
+
+    def test_response_200_if_user_not_login(self):
+        resp = self.client.get(reverse('book-list'))
+        books = list(Book.objects.filter(published=True).all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertTrue(len(books))
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_200_if_user_logged_in(self):
+        resp = self.client.get(reverse('book-list'), HTTP_AUTHORIZATION=self.token)
+        books = list(Book.objects.filter(published=True).all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertTrue(len(books))
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_filter_books_by_title(self):
+        Book.objects.filter(id__lte=10).update(title='book')
+        resp = self.client.get(reverse('book-list'), data={'title': 'book'})
+        books = list(Book.objects.filter(published=True).filter(title__contains='book').all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertTrue(len(books))
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_filter_books_by_description(self):
+        Book.objects.filter(id__lte=10).update(description='book')
+        resp = self.client.get(reverse('book-list'), data={'description': 'book'})
+        books = list(Book.objects.filter(published=True).filter(description__contains='book').all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(len(books), 10)
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_filter_books_by_pseudonym(self):
+        resp = self.client.get(reverse('book-list'), data={'author_pseudonym': 'samsami'})
+        books = list(Book.objects.filter(published=True).filter(author__pseudonym__contains='samsami').all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(len(books), 10)
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+    def test_response_filter_books_by_price_gte(self):
+        Book.objects.filter(id__lte=10).update(price=1200.21)
+        Book.objects.filter(id__gt=10).update(price=1000)
+        resp = self.client.get(reverse('book-list'), data={'min_price': 1200})
+        books = list(Book.objects.filter(published=True).filter(price__gte=1200).all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(len(books), 10)
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_filter_books_by_price_lte(self):
+        Book.objects.filter(id__lte=10).update(price=1200.21)
+        Book.objects.filter(id__gt=10).update(price=1000)
+        resp = self.client.get(reverse('book-list'), data={'max_price': 1200})
+        books = list(Book.objects.filter(published=True).filter(price__lte=1200).all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(len(books), 10)
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_filter_books_by_price_between_min_max(self):
+        Book.objects.filter(id__lte=10).update(price=1200.21)
+        Book.objects.filter(id__gt=10).update(price=1000)
+        resp = self.client.get(reverse('book-list'), data={'min_price': 500, 'max_price': 1300})
+        books = list(Book.objects.filter(published=True)
+                     .filter(price__lte=1300)
+                     .filter(price__gte=500)
+                     .all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(len(books), 20)
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_filter_books_by_price_title_description_pseudonym(self):
+        Book.objects.filter(id__lte=5).update(price=1200,
+                                              title='Python Distilled',
+                                              description='This is a description')
+        resp = self.client.get(reverse('book-list'),
+                               data={'title': 'Python',
+                                     'description': 'is a',
+                                     'pseudonym': 'samsami',
+                                     'min_price': 500,
+                                     'max_price': 1300})
+        books = list(Book.objects.filter(published=True)
+                     .filter(title__contains='Python')
+                     .filter(description__contains='is a')
+                     .filter(author__pseudonym__contains='samsami')
+                     .filter(price__lte=1300)
+                     .filter(price__gte=500)
+                     .all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(len(books), 5)
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue('application/json' in resp['Content-Type'])
