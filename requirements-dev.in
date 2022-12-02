@@ -12,3 +12,4 @@
 -c requirements.txt
 coverage==6.5.0
 ipython==8.6.0
+model-bakery==1.9.0

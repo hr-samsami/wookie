@@ -21,9 +21,11 @@ class BookListView(generics.ListAPIView):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 def my_books(request):
-    books = Book.objects.prefetch_related('author').filter(author=request.user).all()
-    serializer = BookSerializer(books, many=True)
-    return Response(serializer.data)
+    books = list(Book.objects.prefetch_related('author').filter(author=request.user).all())
+    if len(books) > 0:
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])

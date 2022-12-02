@@ -2,6 +2,7 @@ from os import remove
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
 from wookie.apps.book.models import Book
@@ -310,5 +311,43 @@ class DetailBookViewTests(BookViewTests):
         resp = self.client.post(reverse('token_obtain_pair'), data={'username': 'reza', 'password': self.password})
         self.token = f'Bearer {resp.data["access"]}'
         resp = self.client.get(self.url, HTTP_AUTHORIZATION=self.token)
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+
+# Test for path('mylist/', views.my_books, name='book-mylist'),
+class MylistBookViewTests(BookViewTests):
+    def setUp(self):
+        self.create_author()
+        self.get_token()
+        for _ in range(10):
+            self.book = baker.make('book')
+            self.book.author = self.author
+            self.book = self.book.save()
+
+    def test_response_401_if_user_not_login(self):
+        resp = self.client.get(reverse('book-mylist'))
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('Authentication credentials were not provided.', resp.json()['detail'])
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_my_books(self):
+        resp = self.client.get(reverse('book-mylist'), HTTP_AUTHORIZATION=self.token)
+        books = list(Book.objects.filter(author_id=self.author.id).all())
+        serializer = BookSerializer(books, many=True)
+
+        self.assertEqual(resp.data, serializer.data)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertTrue('application/json' in resp['Content-Type'])
+
+    def test_response_raise_when_author_is_not_owner(self):
+        USER_MODEL.objects.create_user(username='reza',
+                                       pseudonym='f.reza',
+                                       email='reza@gmail.com',
+                                       password=self.password)
+
+        resp = self.client.post(reverse('token_obtain_pair'), data={'username': 'reza', 'password': self.password})
+        self.token = f'Bearer {resp.data["access"]}'
+        resp = self.client.get(reverse('book-mylist'), HTTP_AUTHORIZATION=self.token)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue('application/json' in resp['Content-Type'])
