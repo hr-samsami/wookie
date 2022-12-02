@@ -41,4 +41,4 @@ class AuthorTests(APITestCase):
                                                 password=self.password)
         self.assertIsInstance(author, USER_MODEL)
         self.assertFalse(author.is_staff)
-        self.assertEqual(author.pseudonym, None)
+        self.assertEqual(author.pseudonym, '')

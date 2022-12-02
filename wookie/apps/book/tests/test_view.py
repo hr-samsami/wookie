@@ -1,3 +1,4 @@
+import os
 from os import remove
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -12,15 +13,23 @@ USER_MODEL = get_user_model()
 
 
 class BookViewTests(APITestCase):
-    username = 'hamid'
-    password = 'hamid'
-    file_name = 'small.gif'
-    file_path = 'images/book-covers/' + file_name
-    small_gif = (
-        b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04'
-        b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02'
-        b'\x02\x4c\x01\x00\x3b'
-    )
+    @classmethod
+    def setUpTestData(cls):
+        cls.username = 'hamid'
+        cls.password = 'hamid'
+        cls.file_name = 'small.gif'
+        cls.file_path = 'images/book-covers/'
+        cls.small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04'
+            b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02'
+            b'\x02\x4c\x01\x00\x3b'
+        )
+
+    def tearDown(self):
+        # Clean up run after every test method.
+        for fname in os.listdir(self.file_path):
+            if fname.startswith(self.file_name.split('.')[0]):
+                os.remove(os.path.join(self.file_path, fname))
 
     def create_author(self) -> None:
         self.author = USER_MODEL.objects.create_user(username=self.username,
