@@ -30,6 +30,8 @@ djangorestframework-xml==2.0.0
     # via -r requirements.in
 pillow==9.3.0
     # via -r requirements.in
+psycopg2-binary==2.9.3
+    # via -r requirements.in
 pycparser==2.21
     # via cffi
 pyjwt==2.6.0

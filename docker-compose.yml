@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    container_name: wookie_app
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python3 manage.py migrate &&
+             python3 manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=wookie.settings-prod
+      - DJANGO_DEBUG=True
+      - DJANGO_SECRET_KEY=cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpsafDKel%$fs&^%
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-bullseye
+    container_name: wookie_postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+  redis:
+    image: docker.io/bitnami/redis:7.0
+    container_name: wookie_redis
+    environment:
+      - REDIS_PORT_NUMBER=7000
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+      - REDIS_PASSWORD=password123
+    ports:
+      - '7000:7000'
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

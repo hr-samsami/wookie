@@ -9,3 +9,4 @@ djangorestframework-xml==2.0.0
 djangorestframework-simplejwt[crypto]==5.2.2
 Pillow==9.3.0
 django-filter==22.1
+psycopg2-binary==2.9.3
