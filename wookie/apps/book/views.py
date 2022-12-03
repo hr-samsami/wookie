@@ -1,7 +1,8 @@
 from django_filters import rest_framework as filters
-from rest_framework import generics, status
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status, parsers
+from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -15,6 +16,7 @@ class BookListView(generics.ListAPIView):
     serializer_class = BookSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = BookFilter
+    permission_classes = (AllowAny,)
 
 
 @api_view(['GET'])
@@ -25,7 +27,7 @@ def my_books(request):
     if len(books) > 0:
         serializer = BookSerializer(books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
+    return Response('Book Not Found', status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['GET'])
@@ -35,14 +37,16 @@ def book_detail(request, pk):
     try:
         book = Book.objects.prefetch_related('author').filter(author=request.user).get(id=pk)
     except Book.DoesNotExist:
-        return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
+        return Response('Book Not Found', status=status.HTTP_404_NOT_FOUND)
     serializer = BookSerializer(book)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(method='post', request_body=BookSerializer)
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+@parser_classes([parsers.MultiPartParser, parsers.FormParser])
 def book_create(request):
     serializer = BookSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -50,14 +54,16 @@ def book_create(request):
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+@swagger_auto_schema(method='put', request_body=BookSerializer)
 @api_view(['PUT'])
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
+@parser_classes([parsers.MultiPartParser, parsers.FormParser])
 def book_update(request, pk):
     try:
         book = Book.objects.prefetch_related('author').filter(author=request.user).get(id=pk)
     except Book.DoesNotExist:
-        return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
+        return Response('Book Not Found', status=status.HTTP_404_NOT_FOUND)
     serializer = BookSerializer(instance=book, data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save(author=request.user)
@@ -73,9 +79,9 @@ def book_unpublish(request, pk):
         .filter(id=pk)\
         .update(published=False)
     if updated:
-        return Response('Unpublished', status=status.HTTP_200_OK)
+        return Response('Book Unpublished', status=status.HTTP_200_OK)
     else:
-        return Response('No Result', status=status.HTTP_404_NOT_FOUND)
+        return Response('Book Not Found', status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['DELETE'])
@@ -85,9 +91,9 @@ def book_delete(request, pk):
     try:
         book = Book.objects.prefetch_related('author').filter(author=request.user).filter(id=pk).get()
     except Book.DoesNotExist:
-        return Response('The Book is not found', status=status.HTTP_404_NOT_FOUND)
+        return Response('Book Not Found', status=status.HTTP_404_NOT_FOUND)
     book.delete()
-    return Response('Deleted', status=status.HTTP_200_OK)
+    return Response('Book Deleted', status=status.HTTP_200_OK)
 
 
 
