@@ -240,4 +240,8 @@ fabric.properties
 # End of https://mrkandreev.name/snippets/gitignore-generator/#venv,Python,Django,PyCharm+all
 
 # My ignore directories
-static/
+staticfiles/
+images/
+.env.dev
+.env.prod
+.env.prod.db
