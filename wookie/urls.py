@@ -43,7 +43,7 @@ urlpatterns = [
     re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('admin/', admin.site.urls),
     path('renderer/', include('wookie.apps.renderer.urls')),
-    path('book/', include('wookie.apps.book.urls')),
+    path('v1/book/', include('wookie.apps.book.v1.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),

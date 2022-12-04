@@ -57,6 +57,7 @@ Uses the default Django development server.
     ```sh
     $ docker-compose up -d --build
     $ docker-compose exec web python manage.py collectstatic --no-input --clear
+    $ docker-compose exec web python manage.py createsuperuser
     ```
 
     Test it out at [http://localhost:8000](http://localhost:8000). The "wookie" folder is mounted into the container and your code changes apply automatically.
@@ -77,3 +78,9 @@ Uses gunicorn + nginx.
     ```
 
     Test it out at [http://localhost:1337](http://localhost:1337). No mounted folders. To apply changes, the image must be re-built.
+
+Run Tests:
+```sh
+    $ docker-compose -f docker-compose.prod.yml exec web pip install -r requirements-dev.txt
+    $ docker-compose -f docker-compose.prod.yml exec web python manage.py test
+```    
