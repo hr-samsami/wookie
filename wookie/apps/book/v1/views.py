@@ -94,6 +94,3 @@ def book_delete(request, pk):
         return Response('Book Not Found', status=status.HTTP_404_NOT_FOUND)
     book.delete()
     return Response('Book Deleted', status=status.HTTP_200_OK)
-
-
-

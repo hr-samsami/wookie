@@ -16,7 +16,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -29,8 +28,6 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
 # For example: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
-
-
 
 # Application definition
 
@@ -80,7 +77,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wookie.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -113,7 +109,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -124,7 +119,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
@@ -157,13 +151,14 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = 'author.Author'
 
 SWAGGER_SETTINGS = {
-   'SECURITY_DEFINITIONS': {
+    'SECURITY_DEFINITIONS': {
         'Bearer': {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header'
         }
-    }, 'USE_SESSION_AUTH': False
+    },
+    'USE_SESSION_AUTH': False
 }
 
 JWT_SIGNING_KEY = os.getenv('JWT_SIGNING_KEY')

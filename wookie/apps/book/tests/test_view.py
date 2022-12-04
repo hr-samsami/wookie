@@ -360,7 +360,7 @@ class MylistBookViewTests(BookViewTests):
         resp = self.client.get(reverse('book-mylist'), HTTP_AUTHORIZATION=self.token)
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
         self.assertTrue('application/json' in resp['Content-Type'])
-        
+
 
 # Tests for path('mylist/', views.my_books, name='book-mylist')
 class ListBookViewTests(BookViewTests):
@@ -430,6 +430,7 @@ class ListBookViewTests(BookViewTests):
         self.assertEqual(resp.data, serializer.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue('application/json' in resp['Content-Type'])
+
     def test_response_filter_books_by_price_gte(self):
         Book.objects.filter(id__lte=10).update(price=1200.21)
         Book.objects.filter(id__gt=10).update(price=1000)
