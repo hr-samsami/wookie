@@ -400,7 +400,9 @@ class ListBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
     def test_response_filter_books_by_title(self):
-        Book.objects.filter(id__lte=10).update(title='book')
+        for b in Book.objects.all()[:10]:
+            b.title = 'book'
+            b.save()
         resp = self.client.get(reverse('book-list'), data={'title': 'book'})
         books = list(Book.objects.filter(published=True).filter(title__contains='book').all())
         serializer = BookSerializer(books, many=True)
@@ -411,7 +413,9 @@ class ListBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
     def test_response_filter_books_by_description(self):
-        Book.objects.filter(id__lte=10).update(description='book')
+        for b in Book.objects.all()[:10]:
+            b.description = 'book'
+            b.save()
         resp = self.client.get(reverse('book-list'), data={'description': 'book'})
         books = list(Book.objects.filter(published=True).filter(description__contains='book').all())
         serializer = BookSerializer(books, many=True)
@@ -432,8 +436,13 @@ class ListBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
     def test_response_filter_books_by_price_gte(self):
-        Book.objects.filter(id__lte=10).update(price=1200.21)
-        Book.objects.filter(id__gt=10).update(price=1000)
+        qs = list(Book.objects.all())
+        for b in qs[:10]:
+            b.price = 1200.21
+            b.save()
+        for b in qs[10:]:
+            b.price = 1000
+            b.save()
         resp = self.client.get(reverse('book-list'), data={'min_price': 1200})
         books = list(Book.objects.filter(published=True).filter(price__gte=1200).all())
         serializer = BookSerializer(books, many=True)
@@ -444,8 +453,13 @@ class ListBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
     def test_response_filter_books_by_price_lte(self):
-        Book.objects.filter(id__lte=10).update(price=1200.21)
-        Book.objects.filter(id__gt=10).update(price=1000)
+        qs = list(Book.objects.all())
+        for b in qs[:10]:
+            b.price = 1200.21
+            b.save()
+        for b in qs[10:]:
+            b.price = 1000
+            b.save()
         resp = self.client.get(reverse('book-list'), data={'max_price': 1200})
         books = list(Book.objects.filter(published=True).filter(price__lte=1200).all())
         serializer = BookSerializer(books, many=True)
@@ -456,8 +470,13 @@ class ListBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
     def test_response_filter_books_by_price_between_min_max(self):
-        Book.objects.filter(id__lte=10).update(price=1200.21)
-        Book.objects.filter(id__gt=10).update(price=1000)
+        qs = list(Book.objects.all())
+        for b in qs[:10]:
+            b.price = 1200.21
+            b.save()
+        for b in qs[10:]:
+            b.price = 1000
+            b.save()
         resp = self.client.get(reverse('book-list'), data={'min_price': 500, 'max_price': 1300})
         books = list(Book.objects.filter(published=True)
                      .filter(price__lte=1300)
@@ -471,9 +490,12 @@ class ListBookViewTests(BookViewTests):
         self.assertTrue('application/json' in resp['Content-Type'])
 
     def test_response_filter_books_by_price_title_description_pseudonym(self):
-        Book.objects.filter(id__lte=5).update(price=1200,
-                                              title='Python Distilled',
-                                              description='This is a description')
+        for b in Book.objects.all()[:5]:
+            b.price = 1200
+            b.title = 'Python Distilled',
+            b.description = 'This is a description'
+            b.save()
+
         resp = self.client.get(reverse('book-list'),
                                data={'title': 'Python',
                                      'description': 'is a',
