@@ -245,3 +245,4 @@ images/
 .env.dev
 .env.prod
 .env.prod.db
+.env.dev.db
