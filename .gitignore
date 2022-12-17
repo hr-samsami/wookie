@@ -241,7 +241,6 @@ fabric.properties
 
 # My ignore directories
 staticfiles/
-images/
 .env.dev
 .env.prod
 .env.prod.db
