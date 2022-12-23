@@ -2,13 +2,34 @@ from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status, parsers
 from rest_framework.decorators import api_view, authentication_classes, permission_classes, parser_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 from wookie.apps.book.filters import BookFilter
 from wookie.apps.book.models import Book
 from wookie.apps.book.serialisers import BookSerializer
+
+
+class BookView(APIView):
+    queryset = Book.objects.none()
+    permission_classes = (DjangoModelPermissions,)
+
+    def get(self, request, id=None):
+        books = Book.objects.all()
+        serializer = BookSerializer(books, many=True)
+        return Response({'data': serializer.data})
+
+    @swagger_auto_schema(request_body=BookSerializer)
+    def post(self, request, id=None):
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user)
+            return Response({"status": "success", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"status": "error", "error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BookListView(generics.ListAPIView):
